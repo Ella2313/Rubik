@@ -158,5 +158,116 @@ body {
   color: red;
 }
 .range--color-hue .range__track-line:after {
-  
+  background: linear-gradient(to red, yellow, cyan, blue, magenta, red);
+}
+.range--color-saturation .range__handle {
+  color: red;
+}
+.range--color-saturation .range__track {
+  color: red;
+}
+.range--color-saturation .range__track-line:after {
+  background: linear-gradient(to right, gray, currentColor);
+}
+.range--color-lightness .range__handle {
+  color: red;
+}
+.range--color-lightness .range__track {
+  color: red;
+}
+.range--color-lightness .range__track-line:after {
+  background: to right, black, currentColor, white;
+}
+
+.stats {
+  position: relative;
+  width: 14em;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  opacity: 0;
+}
+.stats:not(:last-child) {
+  margin-bottom: 1.5em;
+}
+.stats > i {
+  display: block;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.9em;
+}
+.stats > b {
+  display: block;
+  font-size: 0.9em;
+}
+.stats > b > i {
+  font-size: o.75em;
+}
+.stats[name=worst-time] {
+  display: none;
+}
+
+.text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  line-height: 0.75;
+  perspective: 100rem;
+  opacity: 0;
+}
+.text i {
+  display: inline-block;
+  opacity: 0;
+  white-space: pre-wrap;
+}
+.text--title {
+  bottom: 75%;
+  font-size: 4.4em;
+  height: 1.2em;
+}
+.text--title span {
+  display: block;
+}
+.text--title span:first-child {
+  font-size: 0,5em;
+  margin-bottom: 0.2em;
+}
+.text--note {
+  top: 87%;
+  font-size: 1em;
+}
+.text--timer {
+  bottom: 78%;
+  font-size: 3.5em;
+  line-height: 1;
+}
+.text--complete, .text--best-time {
+  font-size: 1.5em;
+  top: 83%;
+  line-height: 1em;
+}
+
+.btn {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  border-radius: 0;
+  border-width: 0;
+  position: absolute;
+  pointer-events: none;
+  font-size: 1.2em;
+  color: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+}
+.btn:after {
+  position: absolute;
+  content: "";
+  width: 3em;
+  height: 3em;
+  left: 50%;
+  top: 50%;
+  margin-left: -1.5em;
+  margin-top: -1.5em;
+  border-radius: 100%;
 }
