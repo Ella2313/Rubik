@@ -271,3 +271,74 @@ body {
   margin-top: -1.5em;
   border-radius: 100%;
 }
+.btn--b1 {
+  bottom: 0.8em;
+  left: 0.8em;
+}
+.btn--br {
+  bottom: 0.8em;
+  left: 0.8em;
+}
+.btn--bc {
+  bottom: 0.8em;
+  left: calc(50% - 0.5em);
+}
+.btn svg {
+  display: block;
+}
+.btn--cancel {
+  display: none !important;
+}
+
+.ui {
+  pointer-events: none;
+  color: #070b15;
+}
+.ui, .ui__background, .ui__game, .ui__texts, .ui__prefs, .ui__theme, .ui__stats, .ui__buttons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ui__background {
+  z-index: 1;
+  transition: background 500ms;
+  background: #d1d5db;
+}
+.ui__background:after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  content: "";
+  background-image: linear-gradient(to bottom, white 50%, rgba(255, 255, 255, 0));
+}
+.ui__game {
+  pointer-events: all;
+  z-index: 2;
+}
+.ui__game canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ui__texts {
+  z-index: 3;
+}
+.ui__prefs, .ui__stats, .ui__theme {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  z-index: 4;
+}
+.ui__theme {
+  padding-top: 15em;
+}
+.ui__buttons {
+  z-index: 5;
+}
