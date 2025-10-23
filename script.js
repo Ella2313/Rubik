@@ -112,3 +112,47 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
   radius = size * radius;
   radius = Math.min( radius, Math.min( width, Math.min( height, Math.min( depth ) ) ) / 2 );
   var edgeHalfWidth = width / 2 - radius;
+  var edgeHalfHeight = height / 2 - radius;
+  var edgeHalfDepth = depth / 2 - radius;
+  this.parameters = {
+    width: width,
+    height: height,
+    depth: depth,
+    radius: radius,
+    radiusSegments: radiusSegments
+  };
+  var rs1 = radiusSegments + 1;
+  var totalVertexCount = ( rs1 * radiusSegments + 1 ) << 3;
+  var positions = new THREE.BufferAttribute( new Float32Array( totalVertexCount * 3 ), 3 );
+  var normals = new THREE.BufferAttribute( new Float32Array( totalVertexCount * 3 ), 3 );
+  var
+    cornerVerts = [],
+    cornerNormals = [],
+    normal = new THREE.Vector3(),
+    vertex = new THREE.Vector3(),
+    vertexPool = [],
+    normalPool = [],
+    indices = []
+  ;
+  var
+    lastVertex = rs1 * radiusSegments,
+    cornerVertNumber = rs1 * radiusSegments + 1
+  ;
+  donVertices();
+  doFaces();
+  doCorners();
+  doHeightEdges();
+  doWidthEdges();
+  doDepthEdges();
+  function donVertices() {
+    var cornerLayout = [
+      new THREE.Vector3( 1, 1, 1 ),
+      new THREE.Vector3( 1, 1, - 1 ),
+      new THREE.Vector3( - 1, 1, - 1 ),
+      new THREE.Vector3( - 1, 1, 1 ),
+      new THREE.Vector3( 1, - 1, 1 ),
+      new THREE.Vector3( 1, - 1, - 1 ),
+      new THREE.Vector3( - 1, - 1, - 1, ),
+      new THREE.Vector3( - 1, - 1, 1 ),
+    ];
+  for
