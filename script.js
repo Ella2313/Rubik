@@ -69,11 +69,46 @@ class world extends Animation {
     }
     resize() {
       this.width = this.container.offsetWidth;
-      this.height = this.container.offsetWidth;
+      this.height = this.container.offsetHeight;
       this.renderer.setSize( this.width, this.height );
       this.camera.fov = this.fov;
       this.camera.aspect = this.width / this.height;
       const aspect = this.stage.width / this.stage.height;
       const fovRad = this.fov * THREE.Math.DEG2RAD;
-      let distance = ( aspect < this.camera.aspect );
+      let distance = ( aspect < this.camera.aspect )
+        ? ( this.stage.height / 2 ) / Math.tan( fovRad / 2 )
+        : ( this.stage.width / this.camera.aspect ) / ( 2 * Math.tan( fovRad / 2 ) );
+      distance *= 0.5;
+      this.camera.position.set( distance, distance, distance);
+      this.camera.lookAt( this.scene.position );
+      this.camera.updateProjectionMatrix();
+      const docFontSize = ( aspect < this.camera.aspect )
+        ? ( this.height / 100 ) * aspect
+        : this.width / 100;
+      document.documentElement.style.fontSize = docFontSize + 'px';
+      if ( this.onResize ) this.onResize.forEach( cb => cb() );
+   }
+   createLight() {
+     this.lights = {
+       holder:  new THREE.Object3D,
+       ambient: new THREE.AmbientLight( 0xffffff, 0.69 ),
+       front:   new THREE.DirectionalLight( 0xffffff, 0,36),
+       back:    new THREE.DirectionalLight( 0xffffff, 0.19),
+     };
+     this.lights.front.position.set( 1.5, 5, 3 );
+     this.lights.back.position.set(  1.5,  5,  3 );
+     this.lights.holder.add( this.lights.ambient );
+     this.lights.holder.add( this.lights.front );
+     this.lights.holder.add( this.lights.back );
+     this.sceneg.add( this.lights.holder );
+   }
 }
+function RoundedBoxGeometry( size, radius, radiusSegments ) {
+  THREE.BufferGeometry.call( this );
+  this.type = 'RoundedBoxGeometry';
+  radiusSegments = ! isNaN( radiusSegments ) ? Math.max( 1, Math.floor( radiusSegments ) ) : 1;
+  var width, height, depth;
+  width = height = depth = size;
+  radius = size * radius;
+  radius = Math.min( radius, Math.min( width, Math.min( height, Math.min( depth ) ) ) / 2 );
+  var edgeHalfWidth = width / 2 - radius;
