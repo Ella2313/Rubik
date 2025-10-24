@@ -2099,6 +2099,242 @@ class Themes {
         R: 0x449a89, //
         B: 0xec582f, //
         L: 0xa3a947, //
-        P:
-        G:
+        P: 0x08101a, //
+        G: 0x87b9ac, //
       },
+    };
+     this.colors = JSON.parse( JSON.stringify( this.defaults ) );
+  }
+  getColors() {
+    return this.colors[ this.theme ];
+  }
+  setTheme( theme = false, force = false ) {
+    if ( theme === this.theme && force === false ) return;
+    if ( theme !== false ) this.theme = theme;
+    const colors = this.getColors();
+    this.game.dom.prefs.querySelectorAll( '.range__handle div' ).forEach( range => {
+      range.style.background = '#' + colors.R.toString(16).padStart(6, '0');
+    } );
+    this.game.cube.updateColors( colors );
+    this.game.confetti.updateColors( colors );
+    this.game.dom.back.style.background = '#' + colors.G.toString(16).padStart(6, '0');
+  }
+}
+class ThemeEditor {
+  constructor( game ) {
+    this.game = game;
+    this.editColor = 'R';
+    this.getPieceColor = this.getPieceColor.bind( this );
+  }
+  colorFromHSL( h, s, l ) {
+    h = Math.round( h );
+    s = Math.round( s );
+    l = Math.round( l );
+    return new THREE.Color( `hsl(${h}, ${s}%, ${l}%)` );
+  }
+  setHSL( color = null, animate = false ) {
+    this.editColor = ( color === null) ? 'R' : color;
+    const hsl = new THREE.Color( this.game.themes.getColors()[ this.editColor ] );
+    const { h, s, l } = hsl.getHSL( hsl );
+    const { hue, saturation, lightness } = this.game.preferences.ranges;
+    if ( animate ) {
+      const ho = hue.value / 360;
+      const so = saturation.value / 100;
+      const lo = lightness.value / 100;
+      const colorOld = this.colorFromHSL( hue.value, saturation.value, lightness.value );
+      if ( this.tweenHSL ) this.tweenHSL.stop();
+      this.tweenHSL = new Tween( {
+        duration: 200,
+        easing: Easing.Sine.Out(),
+        onUpdate: tween => {
+          hue.setValue( ( ho + ( h - ho ) * tween.value ) * 360 );
+          saturation.setValue( ( so + ( s - so ) * tween.value ) * 100 );
+          lightness.setValue( ( lo + ( l - lo ) * tween.value ) * 100 );
+          const colorTween = colorOld.clone().lerp( hsl, tween.value );
+          const colorTweenStyle = colorTween.getStyle();
+          const colorTweenHex = colorTween.getHSL( colorTween );
+          hue.handle.style.color = colorTweenStyle;
+          saturation.handle.style.color = colorTweenStyle;
+          lightness.handle.style.color = colorTweenStyle;
+          saturation.track.style.color =
+            this.colorFromHSL( colorTweenHex.h * 360, 100, 50 ).getStyle();
+          lightness.track.style.color =
+            this.colorFromHSL( colorTweenHex.h * 360, colorTweenHex.s * 100, 50 ).getStyle();
+          this.game.dom.theme.style.display = 'none';
+          this.game.dom.theme.offsetHeight;
+          this.game.dom.theme.style.display = '';
+        },
+        onComplete: () => {
+          this.updateHSL();
+          this.game.storage.savePreferences();
+        },
+      } );
+    } else {
+      hue.setValue( h * 360 );
+      saturation.setValue( s * 100 );
+      lightness.setValue( l * 100 );
+      this.updateHSL();
+      this.game.storage.savePreferences();
+    }
+  }
+  updateHSL() {
+    const { hue, saturation, lightness } = this.game.preferences.ranges;
+    const h = hue.value;
+    const s = saturation.value;
+    const l = lightness.value;
+    const color = this.colorFromHSL( h, s, l ).getStyle();
+    hue.handle.style.color = color;
+    saturation.handle.style.color = color;
+    lightness.handle.style.color = color;
+    saturation.track.style.color = this.colorFromHSL( h, 100, 50 ).getStyle();
+    lightness.track.style.color = this.colorFromHSL( h, s, 50 ).getStyle();
+    this.game.dom.theme.style.display = 'none';
+    this.game.dom.theme.offsetHeight;
+    this.game.dom.theme.style.display = '';
+    const theme = this.game.themes.theme;
+    this.game.themes.colors[ theme ][ this.editColor ] = this.colorFromHSL( h, s, l ).getHex();
+    this.game.themes.setTheme();
+  }
+  colorPicker( enable ) {
+    if ( enable ) {
+      this.game.dom.game.addEventListener( 'click', this.getPieceColor, false );
+    } else {
+      this.game.dom.game.removeEventListener( 'click', this.getPieceColor, false );
+    }
+  }
+  getPieceColor( event ) {
+    const clickEvent = event.touches
+      ? ( event.touches[ 0 ] || event.changedTouches[ 0 ] )
+      : event;
+    const clickPosition = new THREE.Vector2( clickEvent.pageX, clickEvent.pageY );
+    let edgeIntersect = this.game.controls.getIntersect( clickPosition, this.game.cube.edges, true );
+    let pieceIntersect = this.game.controls.getIntersect( clickPosition, this.game.cube.cubes, true );
+    if ( edgeIntersect !== false ) {
+      const edge = edgeIntersect.object;
+      const position = edge.parent
+        .localToWorld( edge.position.clone() )
+        .sub( this.game.cube.object.position )
+        .sub( this.game.cube.animator.position );
+      const mainAxis = this.game.controls.getMainAxis( position );
+      if ( position.multiplyScalar( 2 ).round()[ mainAxis ] < 1 ) edgeIntersect = false;
+    }
+    const name = edgeIntersect ? edgeIntersect.object.name : pieceIntersect ? 'P' : 'G';
+    this.setHSL( name, true );
+  }
+  resetTheme() {
+    this.game.themes.colors[ this.game.themes.theme ] =
+      JSON.parse( JSON.stringify( this.game.themes.defaults[ this.game.themes.theme ] ) );
+    this.game.themes.setTheme();
+    this.setHSL( this.editColor, true );
+  }
+}
+const States = {
+  3: {
+    checkerboard: {
+      names: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 ],
+      positions: [
+        { "x": 1/3, "y": -1/3, "z": 1/3 },
+        { "x": -1/3, "y": 1/3, "z": 0 },
+        { "x": 1/3, "y": -1/3, "z": -1/3 },
+        { "x": -1/3, "y": 0, "z": -1/3 },
+        { "x": 1/3, "y": 0, "z": 0 },
+        { "x": -1/3, "y": 0, "z": 1/3 },
+        { "x": 1/3, "y": 1/3, "z": 1/3 },
+        { "x": -1/3, "y": -1/3, "z": 0 },
+        { "x": 1/3, "y": 1/3, "z": -1/3 },
+        { "x": 0, "y": 1/3, "z": -1/3 },
+        { "x": 0, "y": -1/3, "z": 0 },
+        { "x": 0, "y": 1/3, "z": 1/3 },
+        { "x": 0, "y": 0, "z": 1/3 },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": -1/3 },
+        { "x": 0, "y": -1/3, "z": -1/3 },
+        { "x": 0, "y": 1/3, "z": 0 },
+        { "x": 0, "y": -1/3, "z": 1/3 },
+        { "x": -1/3, "y": -1/3, "z": 1/3 },
+        { "x": 1/3, "y": 1/3, "z": 0 },
+        { "x": -1/3, "y": -1/3, "z": -1/3 },
+        { "x": 1/3, "y": 0, "z": -1/3 },
+        { "x": -1/3, "y": 0, "z": 0 },
+        { "x": 1/3, "y": 0, "z": 1/3 },
+        { "x": -1/3, "y": 1/3, "z": 1/3 },
+        { "x": 1/3, "y": -1/3, "z": 0 },
+        { "x": -1/3, "y": 1/3, "z": -1/3 }
+      ],
+      rotations: [
+        { "x": -Math.PI, "y": 0, "z": Math.PI, },
+        { "x": Math.PI, "y": 0, "z": 0 },
+        { "x": -Math.PI, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": -Math.PI, "y": 0, "z": Math.PI },
+        { "x": Math.PI, "y": 0, "z": 0 },
+        { "x": -Math.PI, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": -Math.PI, "y": 0, "z": 0 },
+        { "x": Math.PI, "y": 0, "z": Math.PI },
+        { "x": Math.PI, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": Math.PI, "y": 0, "z": Math.PI },
+        { "x": -Math.PI, "y": 0, "z": 0 },
+        { "x": Math.PI, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": 0, "y": 0, "z": Math.PI },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": Math.PI, "y": 0, "z": Math.PI },
+        { "x": -Math.PI, "y": 0, "z": 0 },
+        { "x": Math.PI, "y": 0, "z": Math.PI }
+      ],
+      size: 3,
+    },
+  }
+};
+class IconsConverter {
+  constructor( options ) {
+    options = Object.assign( {
+      tagName: 'icon',
+      className: 'icon',
+      styles: false,
+      icons: {},
+      observe: false,
+      convert: false,
+    }, options || {} );
+    this.tagName = options.tagName;
+    this.className = options.className,
+    this.icons = options.icons;
+    this.svgTag = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
+    this.svgTag.setAttribute( 'class', this.className );
+    if ( options.styles ) this.addstyles();
+    if ( options.convert ) this.convertAllIcons();
+    if ( options.observe ) {
+      const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+      this.observer = new MutationObserver( mutations => { this.convertAllIcons(); } );
+      this.observer.observe( document.documentElement, { childList: true, subtree: true } );
+    }
+    return this;
+  }
+  convertAllIcons() {
+    document.querySelectorAll( this.tagName ).forEach( icon => { this.convertIcons( icon ); } );
+  }
+  converIcone( icon ) {
+    const svgData = this.icons[ icon.attributes[0].localName ];
+    if ( typeof svgData === 'undefined' ) return;
+    const svg = this.svgTag.cloneNode( true );
+    const viewBox = svgData.viewbox.split( ' ' );
+    svg.setAttributeNS( null, 'viewBox', svgData.viewbox );
+    svg.style.width = viewBox[2] / viewBox[3] + 'em';
+    svg.style.height = '1em';
+    svg.innerHTML = svgData.content;
+    icon.parentNode.replaceChild( svg, icon );
+  }
+  addStyles() {
+    const style = document.createElement( 'style' );
+    style.innerHTML = `.${this.className} { display: inline-block; font-size: inherit; overflow: visible; vertical-align: -0.125em; preserveAspectRatio: none; }`;
+    document.head.appendChild( style );
+  }
+}
