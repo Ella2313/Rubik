@@ -155,4 +155,18 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
       new THREE.Vector3( - 1, - 1, - 1, ),
       new THREE.Vector3( - 1, - 1, 1 ),
     ];
-  for
+  for ( var j = 0; j < 8; j ++ ) {
+    cornerVerts.push( [] );
+    cornerNormals.push( [] );
+  }
+  var PIhalf = Math.PI / 2;
+  var Corneroffset = new THREE.Vector3( edgeHalfWidth, edgeHalfHeight, edgeHalfDepth );
+  for ( var y = 0; y <= radiusSegments; y ++ ) {
+    var v = y / radiusSegments;
+    var va = v * PIhalf;
+    var cosVa = Math.cos( va );
+    var sinVa = Math.sin( va );
+    if ( y == radiusSegments ) {
+      vartex.set( 0, 1, 0 );
+      var vert = vertex.clone().multiplyScalar( radius ).add( Corneroffset );
+      cornerVerts[ 0 ].push( vert );
