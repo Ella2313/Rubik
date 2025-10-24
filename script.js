@@ -1209,3 +1209,436 @@ class transition {
     this.game.animator.position.y = 4;
     this.game.animator.rotation.x =   Math.PI / 3;
     this.game.world.camera.zoom = this.data.cameraZoom;
+    this.game.world.camera.updateProjectionMatrix();
+    this.tweens.buttons = {};
+    this.tweens.timer = [];
+    this.tweens.title = [];
+    this.tweens.best = [];
+    this.tweens.complete = [];
+    this.tweens.prefs = [];
+    this.tweens.theme = [];
+    this.tweens.stats = [];
+  }
+  buttons( show, hide ) {
+    const buttonTween = ( button, show ) => {
+      return new Tween( {
+        target: button.style,
+        duration: 300,
+        easing: show ? Easing.Power.Out( 2 ) : Easing.Power.In( 3 ),
+        from: { opacity: show ? 0 : 1 },
+        to: { opacity: show ? 1 : 0 },
+        onUpdate: tween => {
+          const translate = show ? 1 - tween.value : tween.value;
+          button.style.transform = `translate3d(0, ${translate * 1.5}em, 0)`;
+        },
+        onComplete: () => button.style.pointerEvents = show ? 'all' : 'none'
+      } );
+    };
+    hide.forEach( button =>
+      this.tweens.buttons[ button ] = buttonTween( this.game.dom.buttons[ button ], false )
+    );
+    setTimeout( () => show.forEach( button => {
+      this.tweens.buttons[ button ] = buttonTween( this.game.dom.buttons[ button ], true );
+    } ), hide ? 500 : 0 );
+  }
+  cube( show, theming = false ) {
+    this.activeTransitions++;
+    try { this.tweens.cube.stop(); } catch(e) {}
+    const currentY = this.game.cube.animator.position.y;
+    const currentRotation = this.game.cube.animator.rotation.x;
+    this.tweens.cube = new Tween( {
+      duration: show ? 3000 : 1250,
+      easing: show ? Easing.Elastic.Out( 0.8, 0.6 ) : Easing.Back.In( 1 ),
+      onUpdate: tween => {
+        this.game.cube.animator.position.y = show
+          ? ( theming ? 0.9 + ( 1 - tween.value ) * 3.5 : ( 1 - tween.value ) * 4 )
+          : currentY + tween.value * 4;
+        this.game.cube.animator.rotation.x = show
+          ? ( 1 - tween.value ) * Math.PI / 3
+          : currentRotation + tween.value * - Math.PI / 3;
+      },
+    } );
+    if ( theming ) {
+      if ( show ) {
+        this.game.world.camera.zoom = 0.75;
+        this.game.world.camera.updateProjectionMatrix();
+      } else {
+        setTimeout( () => {
+          this.game.world.camera.zoom = this.data.cameraZoom;
+          this.game.world.camera.updateProjectionMatrix();
+        }, 1500 );
+      }
+    }
+    this.durations.cube = show ? 1500 : 1500;
+    setTimeout( () => this.activeTransitions--, this.durations.cube );
+  }
+  float() {
+    try { this.tweens.float.stop(); } catch(e) {}
+    this.tweens.float = new Tween( {
+      duration: 1500,
+      easing: Easing.Sine.InOut(),
+      yoyo: true,
+      onUpdate: tween => {
+        this.game.cube.holder.position.y = (- 0.02 + tween.value * 0.04); 
+        this.game.cube.holder.rotation.x = 0.005 - tween.value * 0.01;
+        this.game.cube.holder.rotation.z = - this.game.cube.holder.rotation.x;
+        this.game.cube.holder.rotation.y = this.game.cube.holder.rotation.x;
+        this.game.controls.edges.position.y =
+          this.game.cube.holder.position.y + this.game.cube.object.position.y;
+      },
+    } );
+  }
+  zoom( play, time ) {
+    this.activeTransitions++;
+    const zoom = ( play ) ? 1 : this.data.cameraZoom;
+    const duration = ( time > 0 ) ? Math.max( time, 1500 ) : 1500;
+    const rotations = ( time > 0 ) ? Math.round( duration / 1500 ) : 1;
+    const easing = Easing.Power.InOut( ( time > 0 ) ? 2 : 3 );
+    this.tweens.zoom = new Tween( {
+      target: this.game.world.camera,
+      duration: duration,
+      easing: easing,
+      to: { zoom: zoom },
+      onUpdate: () => { this.game.world.camera.updateProjectionMatrix(); },
+    } );
+    this.tweens.rotate = new Tween( {
+      target: this.game.cube.animator.rotation,
+      duration: duration,
+      easing: easing,
+      to: { y: - Math.PI * 2 * rotations },
+      onComplete: () => { this.game.cube.animator.rotation.y = 0; },
+    } );
+    this.durations.zoom = duration;
+    setTimeout( () => this.activeTransitions--, this.durations.zoom );
+  }
+  elevate( complete ) {
+    this.activeTransitions++;
+    const cubeY = 
+    this.tweens.elevate = new Tween( {
+      target: this.game.cube.object.position,
+      duration: complete ? 1500 : 0,
+      easing: Easing.Power.InOut( 3 ),
+      to: { y: complete ? -0.05 : this.data.cubeY }
+    } );
+    this.durations.elevate = 1500;
+    setTimeout( () => this.activeTransitions--, this.durations.elevate );
+  }
+  complete( show, best ) {
+    this.activeTransitions++;
+    const text = best ? this.game.dom.texts.best : this.game.dom.texts.complete;
+    if ( text.querySelector( 'span i' ) === null )
+      text.querySelectorAll( 'span' ).forEach( span => this.splitLetters( span ) );
+    const letters = text.querySelectorAll( '.icon, i' );
+    this.flipLetters( best ? 'best' : 'complete', letters, show );
+    text.style.opacity = 1;
+    const duration = this.durations[ best ? 'best' : 'complete' ];
+    if ( ! show ) setTimeout( () => this.game.dom.texts.timer.style.transform = '', duration );
+    setTimeout( () => this.activeTransitions--, duration );
+  } 
+  stats( show ) {
+    if ( show ) this.game.scores.calcStats();
+    this.activeTransitions++;
+    this.tweens.stats.forEach( tween => { tween.stop(); tween = null; } );
+    let tweenId = -1;
+    const stats = this.game.dom.stats.querySelectorAll( '.stats' );
+    const easing = show ? Easing.Power.Out( 2 ) : Easing.Power.In( 3 );
+    stats.forEach( ( stat, index ) => {
+      const delay = index * ( show ? 80 : 60 );
+      this.tweens.stats[ tweenId++ ] = new Tween( {
+        delay: delay,
+        duration: 400,
+        easing: easing,
+        onUpdate: tween => {
+          const translate = show ? ( 1 - tween.value ) * 2 : tween.value;
+          const opacity = show ? tween.value : ( 1 - tween.value );
+          stat.style.transform = `translate3d(0, ${translate}em, 0)`;
+          stat.style.opacity = opacity;
+        }
+      } );
+    } );
+    this.durations.stats = 0;
+    setTimeout( () => this.activeTransitions--, this.durations.stats );
+  }
+  preferences( show ) {
+    this.ranges( this.game.dom.prefs.querySelectorAll( '.range' ), 'prefs', show );
+  }
+  theming( show ) {
+    this.ranges( this.game.dom.theme.querySelectorAll( '.range' ), 'prefs', show );
+  }
+  ranges( ranges, type, show ) {
+    this.activeTransitions++;
+    this.tweens[ type ].forEach( tween => { tween.stop(); tween = null; } );
+    const easing = show ? Easing.Power.Out(2) : Easing.Power.In(3);
+    let tweenId = -1;
+    let listMax = 0;
+    ranges.forEach( ( range, rangeIndex ) => {
+    
+      const label = range.querySelector( '.range__label' );
+      const track = range.querySelector( '.range__track-line' );
+      const handle = range.querySelector( '.range__handle' );
+      const list = range.querySelectorAll( '.range__list div' );
+      const delay = rangeIndex * ( show ? 120 : 100 );
+      label.style.opacity = show ? 0 : 1;
+      track.style.opacity = show ? 0 : 1;
+      handle.style.opacity = show ? 0 : 1;
+      handle.style.pointerEvents = show ? 'all' : 'none';
+      this.tweens[ type ][ tweenId++ ] = new Tween( {
+        delay: show ? delay : delay,
+        duration: 400,
+        easing: easing,
+        onUpdate: tween => {
+          const translate = show ? ( 1 - tween.value ) : tween.value;
+          const opacity = show ? tween.value : ( 1 - tween.value );
+          label.style.transform = `translate3d(0, ${translate}em, 0)`;
+          label.style.opacity = opacity;
+        }
+      } );
+      this.tweens[ type ][ tweenId++ ] = new Tween( {
+        delay: show ? delay + 100 : delay,
+        duration: 400,
+        easing: easing,
+        onUpdate: tween => {
+          const translate = show ? ( 1 - tween.value ) : tween.value;
+          const scale = show ? tween.value : ( 1 - tween.value );
+          const opacity = scale;
+          track.style.transform = `translate3d(0, ${translate}em, 0) scale3d(${scale}, 1, 1)`;
+          track.style.opacity = opacity;
+        }
+      } );
+      this.tweens[ type ][ tweenId++ ] = new Tween( {
+        delay: show ? delay + 100 : delay,
+        duration: 400,
+        easing: easing,
+        onUpdate: tween => {
+          const translate = show ? ( 1 - tween.value ) : tween.value;
+          const opacity = 1 - translate;
+          const scale = 0.5 + opacity * 0.5;
+          handle.style.transform = `translate3d(0, ${translate}em, 0) scale3d(${scale}, ${scale}, ${scale})`;
+          handle.style.opacity = opacity;
+        }
+      } );
+      list.forEach( ( listItem, labelIndex ) => {
+        listItem.style.opacity = show ? 0 : 1;
+        this.tweens[ type ][ tweenId++ ] = new Tween( {
+          delay: show ? delay + 200 + labelIndex * 50 : delay,
+          duration: 400,
+          easing: easing,
+          onUpdate: tween => {
+            const translate = show ? ( 1 - tween.value ) : tween.value;
+            const opacity = show ? tween.value : ( 1 - tween.value );
+            listItem.style.transform = `translate3d(0, ${translate}em, 0)`;
+            listItem.style.opacity = opacity;
+          }
+        } );
+      } );
+      listMax = list.length > listMax ? list.length - 1 : listMax;
+      range.style.opacity = 1;
+    } );
+    this.durations[ type ] = show
+      ? ( ( ranges.length - 1 ) * 100 ) + 200 + listMax * 50 + 400
+      : ( ( ranges.length - 1 ) * 100 ) + 400;
+    setTimeout( () => this.activeTransitions--, this.durations[ type ] ); 
+  }
+  title( show ) {
+    this.activeTransitions++;
+    const title = this.game.dom.texts.title;
+    if ( title.querySelector( 'span i' ) === null )
+      title.querySelectorAll( 'span' ).forEach( span => this.splitLetters( span ) );
+    const letters = title.querySelectorAll( 'i' );
+    this.flipLetters( 'title', letters, show );
+    title.style.opacity = 1;
+    const note = this.game.dom.texts.note;
+    this.tweens.title[ letters.length ] = new Tween( {
+      target: note.style,
+      easing: Easing.Sine.InOut(),
+      duration: show ? 800 : 400,
+      yoyo: show ? true : null,
+      from: { opacity: show ? 0 : ( parseFloat( getComputedStyle( note ).opacity ) ) },
+      to: { opacity: show ? 1 : 0 },
+    } );
+    setTimeout( () => this.activeTransitions--, this.durations.title );
+  }
+  timer( show ) {
+    this.activeTransitions++;
+    const timer = this.game.dom.texts.timer;
+    timer.style.opacity = 0;
+    this.game.timer.convert();
+    this.game.timer.setText();
+    this.splitLetters( timer );
+    const letters = timer.querySelectorAll( 'i' );
+    this.flipLetters( 'timer', letters, show );
+    timer.style.opacity = 1;
+    setTimeout( () => this.activeTransitions--, this.durations.timer );
+  }
+  splitLetters( element ) {
+    const text = element.innerHTML;
+    element.innerHTML = '';
+    text.split( '' ).forEach( letter => {
+      const i = document.createElement( 'i' );
+      i.innerHTML = letter;
+      element.appendChild( i );
+    } );
+  }
+  flipLetters( type, letters, show ) {
+    try { this.tweens[ type ].forEach( tween => tween.stop() ); } catch(e) {}
+    letters.forEach( ( letter, index ) => {
+      letter.style.opacity = show ? 0 : 1;
+      this.tweens[ type ][ index ] = new Tween( {
+        easing: Easing.Sine.Out(),
+        duration: show ? 800 : 400,
+        delay: index * 50,
+        onUpdate: tween => {
+          const rotation = show ? ( 1 - tween.value ) * -80 : tween.value * 80;
+          letter.style.transform = `rotate3d(0, 1, 0, ${rotation}deg)`;
+          letter.style.opacity = show ? tween.value : ( 1 - tween.value );
+        },
+      } );
+    } );
+    this.durations[ type ] = ( letters.length - 1 ) * 50 + ( show ? 800 : 400 );
+  }
+}
+class Timer extends Animation {
+  constructor( game ) {
+    super( false );
+    this.game = game;
+    this.reset();
+    
+  }
+  start( continueGame ) {
+    this.startTime = continueGame ? ( Date.now() - this.deltaTime ) : Date.now();
+    this.deltaTime = 0;
+    this.converted = this.convert();
+    super.start();
+  }
+  reset() {
+    this.startTime = 0;
+    this.currentTime = 0;
+    this.deltaTime = 0;
+    this.converted = '0:00';
+  }
+  stop() {
+    this.currentTime = Date.now();
+    this.deltaTime = this.currentTime - this.startTime;
+    this.convert();
+    super.stop();
+    return { time: this.converted, millis: this.deltaTime };
+  }
+  update() {
+    const old = this.converted;
+    this.currentTime = Date.now();
+    this.deltaTime = this.currentTime - this.startTime;
+    this.convert();
+    if ( this.converted != old ) {
+      localStorage.setItem( 'theCube_time', this.deltaTime );
+      this.setText();
+    }
+  }
+  convert() {
+    const seconds = parseInt( ( this.deltaTime / 1000 ) % 60 );
+    const minutes = parseInt( ( this.deltaTime / ( 1000 * 60 ) ) );
+    this.converted = minutes + ':' + ( seconds < 10 ? '0' : '' ) + seconds;
+  }
+  setText() {
+    this.game.dom.texts.timer.innerHTML = this.converted;
+  }
+}
+const RangeHTML = [
+  '<div class="range">',
+    '<div class="range__label"></div>',
+    '<div class="range__track">',
+      '<div class="range__track-line"></div>',
+      '<div class="range__handle"><div></div></div>',
+    '</div>',
+    '<div class="range__list"></div>',
+  '</div>',
+].join( '\n' );
+document.querySelectorAll( 'range' ).forEach( el => {
+  const temp = document.createElement( 'div' );
+  temp.innerHTML = RangeHTML;
+  const range = temp.querySelector( '.range' );
+  const rangeLabel = range.querySelector( '.range__label' );
+  const rangeList = range.querySelector( '.range__list' );
+  range.setAttribute( 'name', el.getAttribute( 'name' ) );
+  rangeLabel.innerHTML = el.getAttribute( 'title' );
+  if ( el.hasAttribute( 'color' ) ) {
+    range.classList.add( 'range--type-color' );
+    range.classList.add( 'range--color-' + el.getAttribute( 'name' ) );
+  }
+  if ( el.hasAttribute( 'list' ) ) {
+    el.getAttribute( 'list' ).split( ',' ).forEach( listItemText => {
+      const listItem = document.createElement( 'div' );
+      listItem.innerHTML = listItemText;
+      rangeList.appendChild( listItem );
+    } );
+  }
+  el.parentNode.replaceChild( range, el );
+} );
+class Range {
+  constructor( name, options ) {
+    options = Object.assign( {
+      range: [ 0, 1 ],
+      value: 0,
+      step: 0,
+      onUpdate: () => {},
+      onComplete: () => {},
+    }, options || {} );
+    this.element = document.querySelector( '.range[name="' + name + '"]' );
+    this.track = this.element.querySelector( '.range__track' );
+    this.handle = this.element.querySelector( '.range__handle' );
+    this.list = [].slice.call( this.element.querySelectorAll( '.range__list div' ) );
+    this.value = options.value;
+    this.min = options.range[0];
+    this.max = options.range[1];
+    this.step = options.step;
+    this.onUpdate = options.onUpdate;
+    this.onComplete = options.onComplete;
+    this.setValue( this.Value );
+    this.initDraggable();
+  }
+  setValue( value ) {
+    this.value = this.round( this.limitValue( value ) );
+    this.setHandlePosition();
+  }
+  initDraggable() {
+    let current;
+    this.draggable = new Draggable( this.handle, { calcDelta: true } );
+    this.draggable.onDragStart = position => {
+      current = this.draggable.positionFromValue( this.Value );
+      this.handle.handle.style.left = current + 'px';
+    };
+    this.draggable.onDragMove = position => {
+      current = this.limitPosition( current + position.delta.x );
+      this.value = this.round( this.valueFromPosition( current ) );
+      this.setHandlePosition();
+
+      this.onUpdate( this.value );
+    };
+    this.draggable.onDragEnd = position => {
+      this.onComplete( this.value );
+    };
+  }
+  round( value ) {
+    if ( this.step < 1 ) return value;
+    return Math.round( ( value - this.min ) / this.step ) * this.step + this.min;
+  }
+  limitValue( value ) {
+    const max = Math.max( this.max, this.min );
+    const min = Math.min( this.max, this.min );
+    return Math.min( Math.max( value, min ), max );
+  }
+  limitPosition( position ) {
+    return Math.min( Math.max( position, 0 ), this.track.offsetWidth );
+  }
+  percentsFromValue( value ) {
+    return ( value - this.min ) / ( this.max - this.min );
+  }
+  valueFromPosition( position ) {
+    return this.min + ( this.max - this.min ) * ( position / this.track.offsetWidth );
+  }
+  positionFromValue( value ) {
+    return this.percentsFromValue( value ) * this.track.offsetWidth;
+  }
+  setHandlePosition() {
+    this.handle.style.left = this.percentsFromValue( this.value ) * 100 + '%';
+  }
+}
