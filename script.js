@@ -182,7 +182,7 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
         vertex.x = cosVa * Math.cos( ha );
         vertex.y = sinVa;
         vertex.z = cosVa * Math.sin( ha );
-        var vert = vert =vertex.clone().multiplyScalar( radius ).add( corneroffset );
+        var vert = vertex.clone().multiplyScalar( radius ).add( cornerOffset );
         cornerVerts[ 0 ].push( vert );
         vertexPool.push( vert );
         var norm = vertex.clone().normalize();
@@ -190,14 +190,14 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
         normalPool.push( norm );
       }
     }
-    for (var i = 1; i < 8; i ++ ) {
-      for (var j = 0; j < cornerVerts[ 0 ].length; j ++ ) {
+    for ( var i = 1; i < 8; i ++ ) {
+      for ( var j = 0; j < cornerVerts[ 0 ].length; j ++ ) {
         var vert = cornerVerts[ 0 ][ j ].clone().multiply( cornerLayout[ i ] );
         cornerVerts[ i ].push( vert );
         vertexPool.push( vert );
         var norm = cornerNormals[ 0 ][ j ].clone().multiply( cornerLayout[ i ] );
         cornerNormals[ i ].push( norm );
-        normalPool.push( morm );
+        normalPool.push( norm );
       }
     }
   }
@@ -215,7 +215,7 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
     var lastRowOffset = rs1 * ( radiusSegments - 1 );
     for ( var i = 0; i < 8; i ++ ) {
       var cornerOffset = cornerVertNumber * i;
-      for ( var v = 0; v < radiusSegments -1; v ++ ) {
+      for ( var v = 0; v < radiusSegments - 1; v ++ ) {
         var r1 = v * rs1;
         var r2 = ( v + 1 ) * rs1;
         for ( var u = 0; u < radiusSegments; u ++ ) {
@@ -240,55 +240,55 @@ function RoundedBoxGeometry( size, radius, radiusSegments ) {
             indices.push( d );
           }
         }
-    }
-    for ( var u = 0; u < radiusSegments; u ++ ) {
-      var a = corneroffset + lastRowOffset + u;
-      var b = corneroffset + lastRowOffset + u + 1;
-      var c = corneroffset + lastVertex;
-      if ( ! flips[ i ] ) {
-        indices.push( a );
-        indices.push( b );
-        indices.push( c );
-      } else {
-        indices.push( a );
-        indices.push( c );
-        indices.push( b );
+      }
+      for ( var u = 0; u < radiusSegments; u ++ ) {
+        var a = cornerOffset + lastRowOffset + u;
+        var b = cornerOffset + lastRowOffset + u + 1;
+        var c = cornerOffset + lastVertex;
+        if ( ! flips[ i ] ) {
+          indices.push( a );
+          indices.push( b );
+          indices.push( c );
+        } else {
+          indices.push( a );
+          indices.push( c );
+          indices.push( b );
+        }
       }
     }
   }
-}
-function doFaces() {
-  var a = lastVertex;
-  var b = lastVertex + cornerVertNumber;
-  var c = lastVertex + cornerVertNumber * 2;
-  var d = lastVertex + cornerVertNumber * 3;
-  indices.push( a );
-  indices.push( b );
-  indices.push( c );
-  indices.push( a );
-  indices.push( c );
-  indices.push( d );
-  a = lastVertex + cornerVertNumber * 4;
-  b = lastVertex + cornerVertNumber * 5;
-  c = lastVertex + cornerVertNumber * 6;
-  d = lastVertex + cornerVertNumber * 7;
-  indices.push( a );
-  indices.push( c );
-  indices.push( b );
-  indices.push( a );
-  indices.push( d );
-  indices.push( c );
-  a = 0;
-  b = cornerVertNumber;
-  c = cornerVertNumber * 4;
-  d = cornerVertNumber * 5;
-  indices.push( a );
-  indices.push( c );
-  indices.push( b );
-  indices.push( b );
-  indices.push( c );
-  indices.push( d );
-  a = cornerVertNumber * 2;
+  function doFaces() {
+    var a = lastVertex;
+    var b = lastVertex + cornerVertNumber;
+    var c = lastVertex + cornerVertNumber * 2;
+    var d = lastVertex + cornerVertNumber * 3;
+    indices.push( a );
+    indices.push( b );
+    indices.push( c );
+    indices.push( a );
+    indices.push( c );
+    indices.push( d );
+    a = lastVertex + cornerVertNumber * 4;
+    b = lastVertex + cornerVertNumber * 5;
+    c = lastVertex + cornerVertNumber * 6;
+    d = lastVertex + cornerVertNumber * 7;
+    indices.push( a );
+    indices.push( c );
+    indices.push( b );
+    indices.push( a );
+    indices.push( d );
+    indices.push( c );
+    a = 0;
+    b = cornerVertNumber;
+    c = cornerVertNumber * 4;
+    d = cornerVertNumber * 5;
+    indices.push( a );
+    indices.push( c );
+    indices.push( b );
+    indices.push( b );
+    indices.push( c );
+    indices.push( d );
+    a = cornerVertNumber * 2;
     b = cornerVertNumber * 3;
     c = cornerVertNumber * 6;
     d = cornerVertNumber * 7;
@@ -349,19 +349,19 @@ function doFaces() {
     }
   }
   function doDepthEdges() {
-    var cStart = [ 0, 2, 4, 6 ];
-    var CEnd = [ 1, 3, 5, 7 ];
-    for ( var i = 0; i < 4; i ++) {
+    var cStarts = [ 0, 2, 4, 6 ];
+    var cEnds = [ 1, 3, 5, 7 ];
+    for ( var i = 0; i < 4; i ++ ) {
       var cStart = cornerVertNumber * cStarts[ i ];
-      var CEnd = cornerVertNumber * CEnds[ i ];
+      var cEnd = cornerVertNumber * cEnds[ i ];
       var needsFlip = 1 >= i;
       for ( var u = 0; u < radiusSegments; u ++ ) {
         var urs1 = u * rs1;
         var u1rs1 = ( u + 1 ) * rs1;
         var a = cStart + urs1;
         var b = cStart + u1rs1;
-        var c = CEnd + urs1;
-        var d = CEnd + u1rs1;
+        var c = cEnd + urs1;
+        var d = cEnd + u1rs1;
         if ( needsFlip ) {
           indices.push( a );
           indices.push( c );
@@ -480,8 +480,8 @@ class Cube {
     else if ( this.size > 3 ) this.scale = 3 / this.size;
     this.object.scale.set( this.scale, this.scale, this.scale );
     const controlsScale = this.size === 2 ? 0.825 : 1;
-    this.game.controls.edge.scale.set( controlsScale, controlsScale, controlsScale );
-
+    this.game.controls.edges.scale.set( controlsScale, controlsScale, controlsScale );
+    
     this.generatePositions();
     this.generateModel();
     this.pieces.forEach( piece => {
@@ -538,7 +538,7 @@ class Cube {
     this.pieces = [];
     this.edges = [];
     const pieceSize = 1 / 3;
-    const mainMaterial = new THREE.MeshLamerMaterial();
+    const mainMaterial = new THREE.MeshLambertMaterial();
     const pieceMesh = new THREE.Mesh(
       new RoundedBoxGeometry( pieceSize, this.geometry.pieceCornerRadius, 3 ),
       mainMaterial.clone()
@@ -551,19 +551,24 @@ class Cube {
     this.positions.forEach( ( position, index ) => {
       const piece = new THREE.Object3D();
       const pieceCube = pieceMesh.clone();
-      const pieceEdge = [];
+      const pieceEdges = [];
       piece.position.copy( position.clone().divideScalar( 3 ) );
       piece.add( pieceCube );
       piece.name = index;
-      piece.edgeName = '';
+      piece.edgesName = '';
       position.edges.forEach( position => {
         const edge = new THREE.Mesh( edgeGeometry, mainMaterial.clone() );
         const name = [ 'L', 'R', 'D', 'U', 'B', 'F' ][ position ];
         const distance = pieceSize / 2;
         edge.position.set(
-          distance * [   1, 1, 0, 0, 0, 0 ][ position ],
-          distance * [ 0, 0,   1, 1, 0, 0 ][ position ],
-          distance * [ 0, 0, 0, 0,   1, 1 ][ position ]
+          distance * [ - 1, 1, 0, 0, 0, 0 ][ position ],
+          distance * [ 0, 0, - 1, 1, 0, 0 ][ position ],
+          distance * [ 0, 0, 0, 0, - 1, 1 ][ position ]
+        );
+        edge.rotation.set(
+          Math.PI / 2 * [ 0, 0, 1, - 1, 0, 0 ][ position ],
+          Math.PI / 2 * [ - 1, 1, 0, 0, 2, 0 ][ position ],
+          0
         );
         edge.scale.set(
           this.geometry.edgeScale,
@@ -572,10 +577,10 @@ class Cube {
         );
         edge.name = name;
         piece.add( edge );
-        pieceEdge.push( name);
-        this.edge.push( edge );
+        pieceEdges.push( name );
+        this.edges.push( edge );
       } );
-      piece.userData.edges = pieceEdge;
+      piece.userData.edges = pieceEdges;
       piece.userData.cube = pieceCube;
       piece.userData.start = {
         position: piece.position.clone(),
@@ -583,11 +588,6 @@ class Cube {
       };
       this.pieces.push( piece );
     } );
-  }
-  updateColors( colors ) {
-    if ( typeof this.pieces !== 'object' && typeof this.edges !== 'object' ) return;
-    this.pieces.forEach( piece => piece.userData.cude.material.color.setHex( color.P ) );
-    this.edges.forEach( edge => edge.material.color.setHex( colors [ edge.name ] ) );
   }
   updateColors( colors ) {
     if ( typeof this.pieces !== 'object' && typeof this.edges !== 'object' ) return;
@@ -1055,7 +1055,7 @@ class Controls {
     const layer = this.getLayer( move.position );
     this.flipAxis = new THREE.Vector3();
     this.flipAxis[ move.axis ] = 1;
-    this.setectLayer( layer );
+    this.selectLayer( layer );
     this.rotateLayer( move.angle, true, () => {
       converted.shift();
       if ( converted.length > 0 ) {
@@ -1192,7 +1192,7 @@ class Scrambler {
     return { position, axis, angle, name: move };
   }
 }
-class transition {
+class Transition {
   constructor( game ) {
     this.game = game;
     this.tweens = {};
@@ -1201,13 +1201,13 @@ class transition {
       cubeY: -0.2,
       cameraZoom: 0.85,
     };
-    this.activeTranstions = 0;
+    this.activeTransitions = 0;
   }
   init() {
     this.game.controls.disable();
     this.game.cube.object.position.y = this.data.cubeY;
-    this.game.animator.position.y = 4;
-    this.game.animator.rotation.x =   Math.PI / 3;
+    this.game.cube.animator.position.y = 4;
+    this.game.cube.animator.rotation.x = - Math.PI / 3;
     this.game.world.camera.zoom = this.data.cameraZoom;
     this.game.world.camera.updateProjectionMatrix();
     this.tweens.buttons = {};
@@ -1592,7 +1592,7 @@ class Range {
     this.step = options.step;
     this.onUpdate = options.onUpdate;
     this.onComplete = options.onComplete;
-    this.setValue( this.Value );
+    this.setValue( this.value );
     this.initDraggable();
   }
   setValue( value ) {
@@ -1603,14 +1603,14 @@ class Range {
     let current;
     this.draggable = new Draggable( this.handle, { calcDelta: true } );
     this.draggable.onDragStart = position => {
-      current = this.draggable.positionFromValue( this.Value );
-      this.handle.handle.style.left = current + 'px';
+      current = this.positionFromValue( this.value );
+      this.handle.style.left = current + 'px';
     };
     this.draggable.onDragMove = position => {
       current = this.limitPosition( current + position.delta.x );
       this.value = this.round( this.valueFromPosition( current ) );
       this.setHandlePosition();
-
+      
       this.onUpdate( this.value );
     };
     this.draggable.onDragEnd = position => {
@@ -1882,7 +1882,7 @@ class Scores {
       },
       5: {
         scores: [],
-        solveds: 0,
+        solves: 0,
         best: 0,
         worst: 0,
       }
@@ -1892,11 +1892,11 @@ class Scores {
     const data = this.data[ this.game.cube.sizeGenerated ];
     data.scores.push( time );
     data.solves++;
-    if ( data.scores.length > 100 ) data.scores.shift();
-    let besttime = false;
+    if ( data.scores.lenght > 100 ) data.scores.shift();
+    let bestTime = false;    
     if ( time < data.best || data.best === 0 ) {
       data.best = time;
-      besttime = true;
+      bestTime = true;
     }
     if ( time > data.worst ) data.worst = time;
     this.game.storage.saveScores();
@@ -1909,9 +1909,9 @@ class Scores {
     this.setStat( 'total-solves', data.solves );
     this.setStat( 'best-time', this.convertTime( data.best ) );
     this.setStat( 'worst-time', this.convertTime( data.worst ) );
-    this.setStat( 'average 5', this.getAttribute( 5 ) );
-    this.setStat( 'average 12', this.getAttribute( 12 ) );
-    this.setStat( 'average 25', this.getAttribute( 25) );
+    this.setStat( 'average-5', this.getAverage( 5 ) );
+    this.setStat( 'average-12', this.getAverage( 12 ) );
+    this.setStat( 'average-25', this.getAverage( 25 ) );
   }
   setStat( name, value ) {
     if ( value === 0 ) value = '-';
@@ -1920,7 +1920,7 @@ class Scores {
   getAverage( count ) {
     const data = this.data[ this.game.cube.sizeGenerated ];
     if ( data.scores.length < count ) return 0;
-    return this.convertTime( data.scores.slice( count ).reduce( ( a, b) => a + b, 0 ) / count );
+    return this.convertTime( data.scores.slice( -count ).reduce( ( a, b ) => a + b, 0 ) / count );
   }
   convertTime( time ) {
     if ( time <= 0 ) return 0;
@@ -2051,59 +2051,59 @@ class Themes {
   constructor( game ) {
     this.game = game;
     this.theme = null;
-    thisdefault = {
+    this.defaults = {
       cube: {
-        U: 0xfff7ff, // white ฅ^>⩊<^ฅ
-        D: 0xffef48, // yellow ≽^•⩊•^≼
-        E: 0xef3923, // red ฅ^•ﻌ•^ฅ
-        R: 0x41aac8, // blue ≽(•⩊ •マ≼
-        B: 0xff8c0a, // orange ᓚ₍⑅^..^₎
-        L: 0x82ca38, // green ^. .^₎ฅ
-        P: 0x08101a, // piece ᗜ⩊ᗜ
-        G: 0xd1d5db, // background ₍^. .^₎
+        U: 0xfff7ff, // white
+        D: 0xffef48, // yellow
+        F: 0xef3923, // red
+        R: 0x41aac8, // blue
+        B: 0xff8c0a, // orange
+        L: 0x82ca38, // green
+        P: 0x08101a, // piece
+        G: 0xd1d5db, // background
       },
       erno: {
-        U: 0xffffff, //
-        D: 0xffd500, //
-        E: 0xc41e3a, //
-        R: 0x0051ba, //
-        B: 0xff5800, //
-        L: 0x009e60, //
-        P: 0x08101a, //
-        G: 0x8abdff, //
+        U: 0xffffff,
+        D: 0xffd500,
+        F: 0xc41e3a,
+        R: 0x0051ba,
+        B: 0xff5800,
+        L: 0x009e60,
+        P: 0x08101a,
+        G: 0x8abdff,
       },
       dust: {
-        U: 0xfff6eb, //
-        D: 0xe7c48d, //
-        E: 0x8f253e, //
-        R: 0x607e69, //
-        B: 0xbe6f62, //
-        L: 0x849f5d, //
-        P: 0x08101a, //
-        G: 0xE7C48D, //
+        U: 0xfff6eb,
+        D: 0xe7c48d,
+        F: 0x8f253e,
+        R: 0x607e69,
+        B: 0xbe6f62,
+        L: 0x849f5d,
+        P: 0x08101a,
+        G: 0xE7C48D,
       },
       camo: {
-        U: 0xfff6eb, //
-        D: 0xbfb672, //
-        E: 0x37241c, //
-        R: 0x718456, //
-        B: 0x805831, //
-        L: 0x37431d, //
-        P: 0x08101a, //
-        G: 0xBFB672, //
+        U: 0xfff6eb,
+        D: 0xbfb672,
+        F: 0x37241c,
+        R: 0x718456,
+        B: 0x805831,
+        L: 0x37431d,
+        P: 0x08101a,
+        G: 0xBFB672,
       },
       rain: {
-        U: 0xfafaff, //
-        D: 0xedb62d, //
-        E: 0xce2135, //
-        R: 0x449a89, //
-        B: 0xec582f, //
-        L: 0xa3a947, //
-        P: 0x08101a, //
-        G: 0x87b9ac, //
+        U: 0xfafaff,
+        D: 0xedb92d,
+        F: 0xce2135,
+        R: 0x449a89,
+        B: 0xec582f,
+        L: 0xa3a947,
+        P: 0x08101a,
+        G: 0x87b9ac,
       },
     };
-     this.colors = JSON.parse( JSON.stringify( this.defaults ) );
+    this.colors = JSON.parse( JSON.stringify( this.defaults ) );
   }
   getColors() {
     return this.colors[ this.theme ];
@@ -2305,11 +2305,11 @@ class IconsConverter {
       convert: false,
     }, options || {} );
     this.tagName = options.tagName;
-    this.className = options.className,
+    this.className = options.className;
     this.icons = options.icons;
     this.svgTag = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
     this.svgTag.setAttribute( 'class', this.className );
-    if ( options.styles ) this.addstyles();
+    if ( options.styles ) this.addStyles();
     if ( options.convert ) this.convertAllIcons();
     if ( options.observe ) {
       const MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
@@ -2319,9 +2319,9 @@ class IconsConverter {
     return this;
   }
   convertAllIcons() {
-    document.querySelectorAll( this.tagName ).forEach( icon => { this.convertIcons( icon ); } );
+    document.querySelectorAll( this.tagName ).forEach( icon => { this.convertIcon( icon ); } );
   }
-  converIcone( icon ) {
+  convertIcon( icon ) {
     const svgData = this.icons[ icon.attributes[0].localName ];
     if ( typeof svgData === 'undefined' ) return;
     const svg = this.svgTag.cloneNode( true );
@@ -2338,3 +2338,284 @@ class IconsConverter {
     document.head.appendChild( style );
   }
 }
+const Icons = new IconsConverter( {
+  icons: {
+    settings: {
+      viewbox: '0 0 512 512',
+      content: '<path fill="currentColor" d="M444.788 291.1l42.616 24.599c4.867 2.809 7.126 8.618 5.459 13.985-11.07 35.642-29.97 67.842-54.689 94.586a12.016 12.016 0 0 1-14.832 2.254l-42.584-24.595a191.577 191.577 0 0 1-60.759 35.13v49.182a12.01 12.01 0 0 1-9.377 11.718c-34.956 7.85-72.499 8.256-109.219.007-5.49-1.233-9.403-6.096-9.403-11.723v-49.184a191.555 191.555 0 0 1-60.759-35.13l-42.584 24.595a12.016 12.016 0 0 1-14.832-2.254c-24.718-26.744-43.619-58.944-54.689-94.586-1.667-5.366.592-11.175 5.459-13.985L67.212 291.1a193.48 193.48 0 0 1 0-70.199l-42.616-24.599c-4.867-2.809-7.126-8.618-5.459-13.985 11.07-35.642 29.97-67.842 54.689-94.586a12.016 12.016 0 0 1 14.832-2.254l42.584 24.595a191.577 191.577 0 0 1 60.759-35.13V25.759a12.01 12.01 0 0 1 9.377-11.718c34.956-7.85 72.499-8.256 109.219-.007 5.49 1.233 9.403 6.096 9.403 11.723v49.184a191.555 191.555 0 0 1 60.759 35.13l42.584-24.595a12.016 12.016 0 0 1 14.832 2.254c24.718 26.744 43.619 58.944 54.689 94.586 1.667 5.366-.592 11.175-5.459 13.985L444.788 220.9a193.485 193.485 0 0 1 0 70.2zM336 256c0-44.112-35.888-80-80-80s-80 35.888-80 80 35.888 80 80 80 80-35.888 80-80z" />',
+    },
+    back: {
+      viewbox: '0 0 512 512',
+      content: '<path transform="translate(512, 0) scale(-1,1)" fill="currentColor" d="M503.691 189.836L327.687 37.851C312.281 24.546 288 35.347 288 56.015v80.053C127.371 137.907 0 170.1 0 322.326c0 61.441 39.581 122.309 83.333 154.132 13.653 9.931 33.111-2.533 28.077-18.631C66.066 312.814 132.917 274.316 288 272.085V360c0 20.7 24.3 31.453 39.687 18.164l176.004-152c11.071-9.562 11.086-26.753 0-36.328z" />',
+    },
+    trophy: {
+      viewbox: '0 0 576 512',
+      content: '<path fill="currentColor" d="M552 64H448V24c0-13.3-10.7-24-24-24H152c-13.3 0-24 10.7-24 24v40H24C10.7 64 0 74.7 0 88v56c0 66.5 77.9 131.7 171.9 142.4C203.3 338.5 240 360 240 360v72h-48c-35.3 0-64 20.7-64 56v12c0 6.6 5.4 12 12 12h296c6.6 0 12-5.4 12-12v-12c0-35.3-28.7-56-64-56h-48v-72s36.7-21.5 68.1-73.6C498.4 275.6 576 210.3 576 144V88c0-13.3-10.7-24-24-24zM64 144v-16h64.2c1 32.6 5.8 61.2 12.8 86.2-47.5-16.4-77-49.9-77-70.2zm448 0c0 20.2-29.4 53.8-77 70.2 7-25 11.8-53.6 12.8-86.2H512v16zm-127.3 4.7l-39.6 38.6 9.4 54.6c1.7 9.8-8.7 17.2-17.4 12.6l-49-25.8-49 25.8c-8.8 4.6-19.1-2.9-17.4-12.6l9.4-54.6-39.6-38.6c-7.1-6.9-3.2-19 6.7-20.5l54.8-8 24.5-49.6c4.4-8.9 17.1-8.9 21.5 0l24.5 49.6 54.8 8c9.6 1.5 13.5 13.6 6.4 20.5z" />',
+    },
+    cancel: {
+      viewbox: '0 0 352 512',
+      content: '<path fill="currentColor" d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" />',
+    },
+    theme: {
+      viewbox: '0 0 512 512',
+      content: '<path fill="currentColor" d="M204.3 5C104.9 24.4 24.8 104.3 5.2 203.4c-37 187 131.7 326.4 258.8 306.7 41.2-6.4 61.4-54.6 42.5-91.7-23.1-45.4 9.9-98.4 60.9-98.4h79.7c35.8 0 64.8-29.6 64.9-65.3C511.5 97.1 368.1-26.9 204.3 5zM96 320c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm32-128c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128-64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32zm128 64c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"/>',
+    },
+    reset: {
+      viewbox: '0 0 512 512',
+      content: '<path fill="currentColor" d="M370.72 133.28C339.458 104.008 298.888 87.962 255.848 88c-77.458.068-144.328 53.178-162.791 126.85-1.344 5.363-6.122 9.15-11.651 9.15H24.103c-7.498 0-13.194-6.807-11.807-14.176C33.933 94.924 134.813 8 256 8c66.448 0 126.791 26.136 171.315 68.685L463.03 40.97C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.749zM32 296h134.059c21.382 0 32.09 25.851 16.971 40.971l-41.75 41.75c31.262 29.273 71.835 45.319 114.876 45.28 77.418-.07 144.315-53.144 162.787-126.849 1.344-5.363 6.122-9.15 11.651-9.15h57.304c7.498 0 13.194 6.807 11.807 14.176C478.067 417.076 377.187 504 256 504c-66.448 0-126.791-26.136-171.315-68.685L48.97 471.03C33.851 486.149 8 475.441 8 454.059V320c0-13.255 10.745-24 24-24z" />',
+    },
+    trash: {
+      viewbox: '0 0 448 512',
+      content: '<path fill="currentColor" d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />',
+    },
+  },
+  convert: true,
+} );
+const STATE = {
+  Menu: 0,
+  Playing: 1,
+  Complete: 2,
+  Stats: 3,
+  Prefs: 4,
+  Theme: 5,
+};
+const BUTTONS = {
+  Menu: [ 'stats', 'prefs' ],
+  Playing: [ 'back' ],
+  Complete: [],
+  Stats: [],
+  Prefs: [ 'back', 'theme' ],
+  Theme: [ 'back', 'reset' ],
+  None: [],
+};
+const SHOW = true;
+const HIDE = false;
+class Game {
+  constructor() {
+    this.dom = {
+      ui: document.querySelector( '.ui' ),
+      game: document.querySelector( '.ui__game' ),
+      back: document.querySelector( '.ui__background' ),
+      prefs: document.querySelector( '.ui__prefs' ),
+      theme: document.querySelector( '.ui__theme' ),
+      stats: document.querySelector( '.ui__stats' ),
+      texts: {
+        title: document.querySelector( '.text--title' ),
+        note: document.querySelector( '.text--note' ),
+        timer: document.querySelector( '.text--timer' ),
+        complete: document.querySelector( '.text--complete' ),
+        best: document.querySelector( '.text--best-time' ),
+        theme: document.querySelector( '.text--theme' ),
+      },
+      buttons: {
+        prefs: document.querySelector( '.btn--prefs' ),
+        back: document.querySelector( '.btn--back' ),
+        stats: document.querySelector( '.btn--stats' ),
+        reset: document.querySelector( '.btn--reset' ),
+        theme: document.querySelector( '.btn--theme' ),
+      },
+    };
+    this.world = new World( this );
+    this.cube = new Cube( this );
+    this.controls = new Controls( this );
+    this.scrambler = new Scrambler( this );
+    this.transition = new Transition( this );
+    this.timer = new Timer( this );
+    this.preferences = new Preferences( this );
+    this.scores = new Scores( this );
+    this.storage = new Storage( this );
+    this.confetti = new Confetti( this );
+    this.themes = new Themes( this );
+    this.themeEditor = new ThemeEditor( this );
+    this.initActions();
+    this.state = STATE.Menu;
+    this.newGame = false;
+    this.saved = false;
+    this.storage.init();
+    this.preferences.init();
+    this.cube.init();
+    this.transition.init();
+    this.storage.loadGame();
+    this.scores.calcStats();
+    setTimeout( () => {
+      this.transition.float();
+      this.transition.cube( SHOW );
+      setTimeout( () => this.transition.title( SHOW ), 700 );
+      setTimeout( () => this.transition.buttons( BUTTONS.Menu, BUTTONS.None ), 1000 );
+    }, 500 );
+  }
+  initActions() {
+    let tappedTwice = false;
+    this.dom.game.addEventListener( 'click', event => {
+      if ( this.transition.activeTransitions > 0 ) return;
+      if ( this.state === STATE.Playing ) return;
+      if ( this.state === STATE.Menu ) {
+        if ( ! tappedTwice ) {
+          tappedTwice = true;
+          setTimeout( () => tappedTwice = false, 300 );
+          return false;
+        }
+        this.game( SHOW );
+      } else if ( this.state === STATE.Complete ) {
+        this.complete( HIDE );
+      } else if ( this.state === STATE.Stats ) {
+        this.stats( HIDE );
+      } 
+    }, false );
+    this.controls.onMove = () => {
+      if ( this.newGame ) {
+        
+        this.timer.start( true );
+        this.newGame = false;
+      }
+    };
+    this.dom.buttons.back.onclick = event => {
+      if ( this.transition.activeTransitions > 0 ) return;
+      if ( this.state === STATE.Playing ) {
+        this.game( HIDE );
+      } else if ( this.state === STATE.Prefs ) {
+        this.prefs( HIDE );
+      } else if ( this.state === STATE.Theme ) {
+        this.theme( HIDE );
+      }
+    };
+    this.dom.buttons.reset.onclick = event => {
+      if ( this.state === STATE.Theme ) {
+        this.themeEditor.resetTheme();
+      }
+      
+    };
+    this.dom.buttons.prefs.onclick = event => this.prefs( SHOW );
+    this.dom.buttons.theme.onclick = event => this.theme( SHOW );
+    this.dom.buttons.stats.onclick = event => this.stats( SHOW );
+    this.controls.onSolved = () => this.complete( SHOW );
+  }
+  game( show ) {
+    if ( show ) {
+      if ( ! this.saved ) {
+        this.scrambler.scramble();
+        this.controls.scrambleCube();
+        this.newGame = true;
+      }
+      const duration = this.saved ? 0 :
+        this.scrambler.converted.length * ( this.controls.flipSpeeds[0] + 10 );
+      this.state = STATE.Playing;
+      this.saved = true;
+      this.transition.buttons( BUTTONS.None, BUTTONS.Menu );
+      this.transition.zoom( STATE.Playing, duration );
+      this.transition.title( HIDE );
+      setTimeout( () => {
+        this.transition.timer( SHOW );
+        this.transition.buttons( BUTTONS.Playing, BUTTONS.None );
+      }, this.transition.durations.zoom - 1000 );
+      setTimeout( () => {
+        this.controls.enable();
+        if ( ! this.newGame ) this.timer.start( true );
+      }, this.transition.durations.zoom );
+    } else {
+      this.state = STATE.Menu;
+      this.transition.buttons( BUTTONS.Menu, BUTTONS.Playing );
+      this.transition.zoom( STATE.Menu, 0 );
+      this.controls.disable();
+      if ( ! this.newGame ) this.timer.stop();
+      this.transition.timer( HIDE );
+      setTimeout( () => this.transition.title( SHOW ), this.transition.durations.zoom - 1000 );
+      this.playing = false;
+      this.controls.disable();
+    }
+  }
+  prefs( show ) {
+    if ( show ) {
+      if ( this.transition.activeTransitions > 0 ) return;
+      this.state = STATE.Prefs;
+      this.transition.buttons( BUTTONS.Prefs, BUTTONS.Menu );
+      this.transition.title( HIDE );
+      this.transition.cube( HIDE );
+      setTimeout( () => this.transition.preferences( SHOW ), 1000 );
+    } else {
+      this.cube.resize();
+      this.state = STATE.Menu;
+      this.transition.buttons( BUTTONS.Menu, BUTTONS.Prefs );
+      this.transition.preferences( HIDE );
+      setTimeout( () => this.transition.cube( SHOW ), 500 );
+      setTimeout( () => this.transition.title( SHOW ), 1200 );
+    }
+  }
+  theme( show ) {
+    this.themeEditor.colorPicker( show );
+    
+    if ( show ) {
+      if ( this.transition.activeTransitions > 0 ) return;
+      this.cube.loadFromData( States[ '3' ][ 'checkerboard' ] );
+      this.themeEditor.setHSL( null, false );
+      this.state = STATE.Theme;
+      this.transition.buttons( BUTTONS.Theme, BUTTONS.Prefs );
+      this.transition.preferences( HIDE );
+      setTimeout( () => this.transition.cube( SHOW, true ), 500 );
+      setTimeout( () => this.transition.theming( SHOW ), 1000 );
+    } else {
+      this.state = STATE.Prefs;
+      this.transition.buttons( BUTTONS.Prefs, BUTTONS.Theme );
+      this.transition.cube( HIDE, true );
+      this.transition.theming( HIDE );
+      setTimeout( () => this.transition.preferences( SHOW ), 1000 );
+      setTimeout( () => {
+        const gameCubeData = JSON.parse( localStorage.getItem( 'theCube_savedState' ) );
+        if ( !gameCubeData ) {
+          this.cube.resize( true );
+          return;
+        }
+        this.cube.loadFromData( gameCubeData );
+      }, 1500 );
+    }
+  }
+  stats( show ) {
+    if ( show ) {
+      if ( this.transition.activeTransitions > 0 ) return;
+      this.state = STATE.Stats;
+      this.transition.buttons( BUTTONS.Stats, BUTTONS.Menu );
+      this.transition.title( HIDE );
+      this.transition.cube( HIDE );
+      setTimeout( () => this.transition.stats( SHOW ), 1000 );
+    } else {
+      this.state = STATE.Menu;
+      this.transition.buttons( BUTTONS.Menu, BUTTONS.None );
+      this.transition.stats( HIDE );
+      setTimeout( () => this.transition.cube( SHOW ), 500 );
+      setTimeout( () => this.transition.title( SHOW ), 1200 );
+    }
+  }
+  complete( show ) {
+    if ( show ) {
+      this.transition.buttons( BUTTONS.Complete, BUTTONS.Playing );
+      this.state = STATE.Complete;
+      this.saved = false;
+      this.controls.disable();
+      this.timer.stop();
+      this.storage.clearGame();
+      this.bestTime = this.scores.addScore( this.timer.deltaTime );
+      this.transition.zoom( STATE.Menu, 0 );
+      this.transition.elevate( SHOW );
+      setTimeout( () => {
+        this.transition.complete( SHOW, this.bestTime );
+        this.confetti.start();
+      }, 1000 );
+    } else {
+      this.state = STATE.Stats;
+      this.saved = false;
+      this.transition.timer( HIDE );
+      this.transition.complete( HIDE, this.bestTime );
+      this.transition.cube( HIDE );
+      this.timer.reset();
+      setTimeout( () => {
+        this.cube.reset();
+        this.confetti.stop();
+        this.transition.stats( SHOW );
+        this.transition.elevate( 0 );
+      }, 1000 );
+      return false;
+    }
+  }
+}
+window.version = '0.99.2';
+window.game = new Game();
